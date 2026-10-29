@@ -187,4 +187,5 @@ node scripts/seed-demo.mjs     # в другом терминале: тесто�
 | `DOMAIN` | `/etc/pokolenie/env` | домен сайта (`nspokolonye.site`); по нему install.sh собирает `PUBLIC_URL` |
 | `PUBLIC_URL` | выставляет install.sh | адрес сайта для кнопок Mini App и ссылок календаря |
 | `DATA_DIR`, `PORT` | выставляет install.sh | папка базы, порт (3100) |
+| `TELEGRAM_API_ROOT` | `/etc/pokolenie/env`, по необходимости | адрес посредника для Telegram API, если хостинг не пускает к api.telegram.org (`deploy/telegram-proxy-worker.js`) |
 | `DEV_LOGIN=1` | **только локально** | тестовый вход без Telegram |

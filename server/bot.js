@@ -167,7 +167,7 @@ export async function startBot() {
     setSender(async (chatId, text) => console.log(`[уведомление → ${chatId}] ${text.replace(/<[^>]+>/g, '')}`));
     return;
   }
-  const b = new Bot(config.botToken);
+  const b = new Bot(config.botToken, config.telegramApiRoot ? { client: { apiRoot: config.telegramApiRoot } } : undefined);
   try {
     // без ограничения запрос к Telegram может висеть минутами, если сервер не может до него достучаться
     await Promise.race([

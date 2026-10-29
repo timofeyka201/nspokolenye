@@ -12,4 +12,6 @@ export const config = {
   // Вход без Telegram для проверки на своём компьютере. На сервере не включать!
   devLogin: process.env.DEV_LOGIN === '1',
   botUsername: process.env.BOT_USERNAME || '',
+  // Если хостинг не пускает к api.telegram.org — адрес посредника (например, Cloudflare Worker, см. deploy/telegram-proxy-worker.js)
+  telegramApiRoot: (process.env.TELEGRAM_API_ROOT || '').trim().replace(/\/$/, ''),
 };
