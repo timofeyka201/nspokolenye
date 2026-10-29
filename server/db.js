@@ -301,6 +301,15 @@ export function tx(fn) {
   }
 }
 
+// ---------- Миграции ----------
+// База на сервере уже существует, поэтому CREATE TABLE IF NOT EXISTS для неё ничего не меняет.
+// Новую колонку в существующей таблице добавляйте вызовом ensureColumn ниже — он безопасен при повторных запусках.
+// Пример: ensureColumn('events', 'online', 'INTEGER NOT NULL DEFAULT 0');
+export function ensureColumn(table, column, ddl) {
+  const cols = all(`PRAGMA table_info(${table})`).map((c) => c.name);
+  if (!cols.includes(column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+}
+
 export const nowIso = () => new Date().toISOString();
 export const randomToken = (bytes = 24) => crypto.randomBytes(bytes).toString('base64url');
 export const randomCode = (len = 8) => {

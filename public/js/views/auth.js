@@ -22,7 +22,7 @@ export function Login() {
   const [req, setReq] = useState(null);
   const [status, setStatus] = useState('');
   const [devName, setDevName] = useState('');
-  const [devAdmin, setDevAdmin] = useState(true);
+  const [devAdmin, setDevAdmin] = useState(false);
 
   useEffect(() => { api('/config').then(setCfg).catch(() => setCfg({})); }, []);
 
