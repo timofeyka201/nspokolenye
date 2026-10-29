@@ -1,0 +1,20 @@
+{
+  "name": "pokolenie",
+  "version": "1.0.0",
+  "description": "Сервис малой группы проекта «Поколение»: веб-приложение, Telegram Mini App и бот",
+  "private": true,
+  "type": "module",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "DEV_LOGIN=1 node --no-warnings --watch server/index.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "grammy": "^1.46.0",
+    "qrcode-generator": "^2.0.4"
+  }
+}
