@@ -42,14 +42,11 @@ app.get(/^(?!\/(api|cal)\/).*/, (req, res) => {
   res.sendFile(path.join(pub, 'index.html'));
 });
 
-const server = app.listen(config.port, async () => {
+const server = app.listen(config.port, () => {
   console.log(`«Поколение» запущено: http://localhost:${config.port}`);
-  try {
-    await startBot();
-  } catch (e) {
-    console.error('Не удалось запустить бота:', e.message);
-  }
+  // фоновые задачи не ждут бота: уведомления копятся в очереди и уйдут, когда бот подключится
   startJobs();
+  startBot().catch((e) => console.error('Не удалось запустить бота:', e.message));
 });
 
 for (const sig of ['SIGTERM', 'SIGINT']) {

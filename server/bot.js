@@ -167,15 +167,33 @@ export async function startBot() {
     setSender(async (chatId, text) => console.log(`[уведомление → ${chatId}] ${text.replace(/<[^>]+>/g, '')}`));
     return;
   }
-  bot = new Bot(config.botToken);
-  await bot.init();
-  setupBot(bot);
+  const b = new Bot(config.botToken);
+  try {
+    // без ограничения запрос к Telegram может висеть минутами, если сервер не может до него достучаться
+    await Promise.race([
+      b.init(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Telegram не ответил за 20 секунд')), 20_000)),
+    ]);
+  } catch (e) {
+    // Не сдаёмся: при старте сервера сеть могла быть ещё недоступна. Пока бот не запущен,
+    // сайт показывает «Бот ещё не подключён», а уведомления копятся в очереди.
+    const badToken = e?.error_code === 401 || e?.error_code === 404;
+    console.error(badToken
+      ? 'Бот не запустился: Telegram не принял BOT_TOKEN. Проверьте токен в /etc/pokolenie/env и перезапустите: systemctl restart pokolenie'
+      : `Бот не запустился: нет связи с Telegram (${e.message}). Повторю через минуту`);
+    setTimeout(() => startBot().catch((err) => console.error('Бот:', err.message)), badToken ? 10 * 60_000 : 60_000);
+    return;
+  }
+  setupBot(b);
 
   await registerCommands();
   bot.start({
     allowed_updates: ['message', 'callback_query', 'my_chat_member'],
     onStart: () => console.log(`Бот @${info.username} запущен`),
-  }).catch((e) => console.error('Бот остановился:', e.message));
+  }).catch((e) => {
+    console.error(`Бот остановился: ${e.message}. Перезапуск через минуту`);
+    setTimeout(() => startBot().catch((err) => console.error('Бот:', err.message)), 60_000);
+  });
   flushNotifications();
 }
 

@@ -3,7 +3,8 @@ const list = (s) => (s || '').split(/[,\s]+/).filter(Boolean);
 
 export const config = {
   port: +process.env.PORT || 3100,
-  botToken: process.env.BOT_TOKEN || '',
+  // кавычки и пробелы вокруг токена в файле настроек — частая ошибка, убираем их
+  botToken: (process.env.BOT_TOKEN || '').trim().replace(/^['"]|['"]$/g, ''),
   // Адрес сайта, например https://app.example.ru — нужен для кнопок Mini App и ссылок на календарь
   publicUrl: (process.env.PUBLIC_URL || 'http://localhost:3100').replace(/\/$/, ''),
   // Telegram ID главных администраторов: могут создавать группы и назначать кураторов
