@@ -78,7 +78,7 @@ DOMAIN=nspokolonye.site
 Затем запустите установку:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/timofeyka201/pokolenie/main/deploy/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/timofeyka201/nspokolenye/main/deploy/bootstrap.sh | bash
 ```
 
 Скрипт сам установит всё нужное, настроит службы и HTTPS и в конце выведет адрес сайта. Если репозиторий приватный, скрипт покажет ключ: его нужно добавить в GitHub → репозиторий → Settings → Deploy keys.

@@ -2,7 +2,7 @@
 # Первая установка «Поколения» на сервер. Обычно этот файл не запускают из репозитория,
 # а вставляют в терминал сервера целиком (см. README, раздел «Установка на сервер»).
 set -euo pipefail
-REPO="${REPO:-timofeyka201/pokolenie}"
+REPO="${REPO:-timofeyka201/nspokolenye}"
 export GIT_TERMINAL_PROMPT=0
 apt-get update -y >/dev/null && apt-get install -y git curl >/dev/null
 
