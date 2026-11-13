@@ -16,7 +16,10 @@ import { CoffeePage } from './views/coffee.js';
 import { RatingPage, BadgesPage } from './views/rating.js';
 import { PostsPage } from './views/posts.js';
 
+import { GuidePage, ConstitutionPage } from './views/group-info.js';
+
 const ROUTES = [
+  ['/guide', GuidePage], ['/constitution', ConstitutionPage],
   ['/', Home], ['/calendar', CalendarTab], ['/goals', GoalsTab], ['/people', PeopleTab], ['/menu', MenuTab],
   ['/event/:id', EventPage], ['/event/:id/feedback', FeedbackPage], ['/event/:id/feedback-summary', FeedbackSummary], ['/feedback', FeedbackOverview],
   ['/goal/:id', GoalPage], ['/goals/user/:uid', UserGoals],

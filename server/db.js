@@ -310,6 +310,8 @@ export function ensureColumn(table, column, ddl) {
   if (!cols.includes(column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
 }
 
+ensureColumn('groups', 'constitution', "TEXT NOT NULL DEFAULT ''");
+
 export const nowIso = () => new Date().toISOString();
 export const randomToken = (bytes = 24) => crypto.randomBytes(bytes).toString('base64url');
 export const randomCode = (len = 8) => {
