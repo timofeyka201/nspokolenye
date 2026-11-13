@@ -70,19 +70,19 @@ api.post('/auth/logout', (req, res) => {
 });
 
 // ---------- Я ----------
-function myGroups(userId) {
+function myGroups(userId, isAdmin) {
   return all(`SELECT g.id, g.name, g.chat_id IS NOT NULL AS chat_linked, m.role, m.status
     FROM members m JOIN groups g ON g.id = m.group_id WHERE m.user_id = ? AND m.status != 'left' ORDER BY g.name`, userId)
-    .map((g) => ({ ...g, chat_linked: !!g.chat_linked, role_title: ROLE_TITLES[g.role], is_staff: STAFF_ROLES.includes(g.role) }));
+    .map((g) => ({ ...g, chat_linked: !!g.chat_linked, role_title: ROLE_TITLES[g.role], is_staff: STAFF_ROLES.includes(g.role), is_curator: g.role === 'curator' || isAdmin }));
 }
 
 function mePayload(u) {
-  let groups = myGroups(u.id);
+  let groups = myGroups(u.id, !!u.is_admin);
   // главный администратор видит все группы
   if (u.is_admin) {
     const mine = new Set(groups.map((g) => g.id));
     const others = all('SELECT id, name, chat_id IS NOT NULL AS chat_linked FROM groups ORDER BY name').filter((g) => !mine.has(g.id));
-    groups = groups.concat(others.map((g) => ({ ...g, chat_linked: !!g.chat_linked, role: 'curator', status: 'active', role_title: 'Администратор', is_staff: true, admin_view: true })));
+    groups = groups.concat(others.map((g) => ({ ...g, chat_linked: !!g.chat_linked, role: 'curator', status: 'active', role_title: 'Администратор', is_staff: true, is_curator: true, admin_view: true })));
   }
   const calHttp = `${config.publicUrl}/cal/${u.cal_token}.ics`;
   return {
@@ -117,7 +117,7 @@ api.patch('/me', (req, res) => {
     next.first_name, next.last_name, next.birthdate, next.bio, next.can_help, next.need_help, next.tags, onboarded, current, u.id);
   const fresh = get('SELECT * FROM users WHERE id = ?', u.id);
   if (isProfileComplete(fresh)) {
-    for (const g of myGroups(u.id).filter((g) => g.status === 'active')) {
+    for (const g of myGroups(u.id, !!u.is_admin).filter((g) => g.status === 'active')) {
       addPoints(g.id, u.id, 'profile_complete');
       checkBadges(g.id, u.id);
     }
