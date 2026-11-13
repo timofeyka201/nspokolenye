@@ -42,6 +42,14 @@ export function MenuTab({ dir }) {
     </${Section}>
 
     <${Section}>
+      <${List}>
+        <${Row} icon="clipboard-list" color="indigo" title="Конституция группы" href="/constitution" />
+        <${Row} icon="message-circle-question-mark" color="blue" title="Как пользоваться приложением" href="/guide" />
+        ${g.is_curator && html`<${Row} icon="users" color="orange" title="Назначить роли" href="/admin/members" />`}
+      </${List}>
+    </${Section}>
+
+    <${Section}>
       <div class="section-label">Активность</div>
       <${List}>
         <${Row} icon="trophy" color="yellow" title="Рейтинг" href="/rating" />
@@ -231,9 +239,9 @@ export function AdminMembers({ dir }) {
   const st = useG('/members');
   const approve = async (u) => { await attempt(() => gapi(`/members/${u.id}/approve`, { method: 'POST' }), `${u.name} в группе`); st.reload(); };
   const decline = async (u) => { if (await confirm(`Отклонить заявку ${u.name}?`, { ok: 'Отклонить', danger: true })) { await attempt(() => gapi(`/members/${u.id}`, { method: 'DELETE' })); st.reload(); } };
-  const roleMenu = (u) => actionSheet([
-    ...(g.is_curator ? Object.entries({ participant: 'Участник', mentor: 'Ментор', nastavnik: 'Наставник', curator: 'Куратор' }).filter(([r]) => r !== u.role).map(([r, t]) => ({
-      label: `Роль: ${t}`, onClick: async () => { await attempt(() => gapi(`/members/${u.id}`, { method: 'PATCH', body: { role: r } }), 'Роль изменена'); st.reload(); },
+  const roleMenu = (u, roles) => actionSheet([
+    ...(g.is_curator ? Object.entries(roles).filter(([r]) => r !== u.role).map(([r, t]) => ({
+      label: `Роль: ${t}`, onClick: async () => { const saved = await attempt(() => gapi(`/members/${u.id}`, { method: 'PATCH', body: { role: r } }), 'Роль изменена'); if (saved) { await refreshMe(); st.reload(); } },
     })) : []),
     { label: 'Открыть профиль', onClick: () => navigate(`/member/${u.id}`) },
     { label: 'Исключить из группы', danger: true, onClick: async () => { if (await confirm(`Исключить ${u.name}?`, { ok: 'Исключить', danger: true })) { await attempt(() => gapi(`/members/${u.id}`, { method: 'DELETE' }), 'Исключён(а)'); st.reload(); } } },
@@ -248,7 +256,7 @@ export function AdminMembers({ dir }) {
           <button class="nav-btn round" style="background:var(--green);color:#fff" onClick=${() => approve(u)} aria-label="Принять"><${Icon} name="check" size=${18} /></button>
         </div>`)}</div>
       </${Section}>`}
-      <${List}>${d.members.map((u) => html`<${Row} key=${u.id} avatar=${u} title=${u.name} sub=${u.role_title} onClick=${() => roleMenu(u)} />`)}</${List}>
+      <${List}>${d.members.map((u) => html`<${Row} key=${u.id} avatar=${u} title=${u.name} sub=${u.role_title} onClick=${() => roleMenu(u, d.roles)} />`)}</${List}>
       <div class="section-foot"><b>Наставник</b> видит анонимную обратную связь и публикует задания. <b>Ментор</b>, <b>наставник</b> и <b>куратор</b> управляют встречами, материалами и заявками. Роли назначает только <b>куратор</b>.</div>
     `}</${Async}>
   </${Page}>`;

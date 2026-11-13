@@ -33,6 +33,24 @@ function upcomingBirthdays(groupId, tz) {
   return res;
 }
 
+// Конституцию редактирует действующий куратор этой группы.
+function canEditConstitution(req) {
+  return req.member?.status === 'active' && req.member.role === 'curator';
+}
+
+r.get('/constitution', (req, res) => {
+  res.json({ text: req.group.constitution, can_edit: canEditConstitution(req) });
+});
+
+r.patch('/constitution', requireCurator, (req, res) => {
+  if (!canEditConstitution(req)) fail(403, 'Конституцию может изменить только куратор группы');
+  const text = req.body?.text;
+  if (typeof text !== 'string' || text.length > 12000) fail(400, 'Введите текст до 12 000 символов');
+  const saved = text.trim();
+  run('UPDATE groups SET constitution = ? WHERE id = ?', saved, req.group.id);
+  res.json({ text: saved, can_edit: true });
+});
+
 // ---------- Главная ----------
 r.get('/home', (req, res) => {
   const gid = req.group.id, me = req.user.id, now = nowIso();
@@ -160,7 +178,7 @@ r.delete('/members/:uid', requireStaff, (req, res) => {
 r.patch('/members/:uid', requireCurator, (req, res) => {
   const uid = +req.params.uid;
   const role = String(req.body.role || '');
-  if (!ROLE_TITLES[role]) fail(400, 'Неизвестная роль');
+  if (!Object.hasOwn(ROLE_TITLES, role)) fail(400, 'Неизвестная роль');
   const m = get("SELECT * FROM members WHERE group_id = ? AND user_id = ? AND status = 'active'", req.group.id, uid);
   if (!m) fail(404, 'Человек не найден');
   if (m.role === 'curator' && role !== 'curator') {
