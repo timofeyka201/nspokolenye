@@ -1,5 +1,5 @@
 // Люди группы, профили, «спасибо», подсказки «кто может помочь»
-import { html, useState, useEffect, useStore, useG, gapi, clearCache, currentGroup, relative, birthdayLabel, ageFrom } from '../lib.js';
+import { html, useState, useEffect, useStore, useG, gapi, currentGroup, relative, birthdayLabel, ageFrom } from '../lib.js';
 import { Page, Icon, List, Row, Section, Button, Field, AutoTextarea, Empty, Async, Avatar, Verified, NavButton, openSheet, SheetLayout, actionSheet, confirm, attempt } from '../ui.js';
 import { navigate, back, query } from '../router.js';
 import { openLink } from '../tg.js';
@@ -66,23 +66,11 @@ export function MemberPage({ id, dir }) {
   const st = useG(`/members/${id}`);
   const self = +id === me.user.id;
 
-  const assignRole = (p) => actionSheet(
-    Object.entries({ participant: 'Участник', mentor: 'Ментор', nastavnik: 'Наставник', curator: 'Куратор' })
-      .filter(([role]) => role !== p.role)
-      .map(([role, title]) => ({
-        label: title,
-        onClick: async () => {
-          const saved = await attempt(() => gapi(`/members/${p.id}`, { method: 'PATCH', body: { role } }), 'Роль изменена');
-          if (saved) {
-            clearCache();
-            st.reload();
-          }
-        },
-      })),
-    'Назначить роль',
-  );
-
   const staffMenu = (p) => actionSheet([
+    ...(g.is_curator && !self ? ['participant', 'mentor', 'nastavnik', 'curator'].filter((r) => r !== p.role).map((r) => ({
+      label: `Сделать: ${{ participant: 'участник', mentor: 'ментор', nastavnik: 'наставник', curator: 'куратор' }[r]}`,
+      onClick: async () => { await attempt(() => gapi(`/members/${p.id}`, { method: 'PATCH', body: { role: r } }), 'Роль изменена'); st.reload(); },
+    })) : []),
     !self && { label: 'Исключить из группы', danger: true, onClick: async () => {
       if (await confirm(`Исключить ${p.name} из группы?`, { ok: 'Исключить', danger: true }) && await attempt(() => gapi(`/members/${p.id}`, { method: 'DELETE' }), 'Исключён(а)')) back('/people');
     } },
@@ -96,13 +84,11 @@ export function MemberPage({ id, dir }) {
         <${Avatar} user=${p} size=${96} />
         <h1>${p.name}${p.verified && html`<${Verified} />`}</h1>
         <div class="row-flex wrap" style="justify-content:center">
-          <span class=${`chip ${ROLE_CHIP[p.role]}`}>${p.role_title}</span>
+          ${p.role !== 'participant' && html`<span class=${`chip ${ROLE_CHIP[p.role]}`}>${p.role_title}</span>`}
           ${p.username && html`<button class="chip" onClick=${() => openLink(`https://t.me/${p.username}`)}>@${p.username}</button>`}
           ${p.birthday && html`<span class="chip">🎂 ${birthdayLabel(p.birthday)}${p.birthdate && ageFrom(p.birthdate) != null ? ` · ${ageFrom(p.birthdate)}` : ''}</span>`}
         </div>
       </div>
-
-      ${g.is_curator && !self && p.status === 'active' && html`<${Button} kind="secondary" block onClick=${() => assignRole(p)}>Назначить роль</${Button}>`}
 
       ${!self && html`<div class="btn-row">
         ${p.username && html`<${Button} kind="tinted" sm icon="send" onClick=${() => openLink(`https://t.me/${p.username}`)}>Написать</${Button}>`}
