@@ -83,14 +83,15 @@ export function MemberPage({ id, dir }) {
   );
 
   const staffMenu = (p) => actionSheet([
-    !self && { label: 'Исключить из группы', danger: true, onClick: async () => {
+    g.is_curator && !self && p.status === 'active' && { label: 'Назначить роль', onClick: () => assignRole(p) },
+    g.is_staff && !self && { label: 'Исключить из группы', danger: true, onClick: async () => {
       if (await confirm(`Исключить ${p.name} из группы?`, { ok: 'Исключить', danger: true }) && await attempt(() => gapi(`/members/${p.id}`, { method: 'DELETE' }), 'Исключён(а)')) back('/people');
     } },
   ], p.name);
 
   return html`<${Page} title=${st.data?.profile.name || 'Профиль'} back="/people" dir=${dir} large=${false}
     right=${self ? html`<${NavButton} icon="pencil" label="Редактировать" onClick=${() => navigate('/profile')} />`
-      : g.is_staff && st.data ? html`<${NavButton} icon="ellipsis" label="Действия" onClick=${() => staffMenu(st.data.profile)} />` : null}>
+      : (g.is_staff || g.is_curator) && st.data ? html`<${NavButton} icon="ellipsis" label="Действия" onClick=${() => staffMenu(st.data.profile)} />` : null}>
     <${Async} state=${st}>${({ profile: p, goals, activity: a, badges, thanks }) => html`
       <div class="profile-head">
         <${Avatar} user=${p} size=${96} />
@@ -101,8 +102,6 @@ export function MemberPage({ id, dir }) {
           ${p.birthday && html`<span class="chip">🎂 ${birthdayLabel(p.birthday)}${p.birthdate && ageFrom(p.birthdate) != null ? ` · ${ageFrom(p.birthdate)}` : ''}</span>`}
         </div>
       </div>
-
-      ${g.is_curator && !self && p.status === 'active' && html`<${Button} kind="secondary" block onClick=${() => assignRole(p)}>Назначить роль</${Button}>`}
 
       ${!self && html`<div class="btn-row">
         ${p.username && html`<${Button} kind="tinted" sm icon="send" onClick=${() => openLink(`https://t.me/${p.username}`)}>Написать</${Button}>`}
